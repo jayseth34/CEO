@@ -1,0 +1,30 @@
+# .NET build artifacts
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.ncrunchproject
+*.lscache
+*.dtbcache.v2
+
+# Angular / Node
+node_modules/
+dist/
+.angular/
+
+# Environment / secrets
+appsettings.Development.json
+*.env
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/settings.json
+
+# Claude Code
+.claude/
