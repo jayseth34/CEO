@@ -29,6 +29,7 @@ import { Resource } from '../../core/models/models';
               <th>Workload</th>
               <th>Score</th>
               <th>Status</th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
@@ -68,6 +69,9 @@ import { Resource } from '../../core/models/models';
                   <span class="badge" [class]="r.isAvailable && r.currentLoad < r.maxLoad ? 'badge-success' : 'badge-warning'">
                     {{ r.isAvailable && r.currentLoad < r.maxLoad ? 'Available' : 'Busy' }}
                   </span>
+                </td>
+                <td>
+                  <button class="btn btn-ghost btn-sm" style="color:#ef4444" (click)="confirmDelete(r)">Delete</button>
                 </td>
               </tr>
             }
@@ -134,6 +138,26 @@ import { Resource } from '../../core/models/models';
         </div>
       </div>
     }
+
+    @if (deleteTarget) {
+      <div class="modal-backdrop" (click)="$event.target === $event.currentTarget && (deleteTarget = null)">
+        <div class="modal" style="max-width:420px">
+          <div class="modal-title" style="color:#ef4444">Delete Member</div>
+          <p style="font-size:14px;color:var(--text-muted);margin-bottom:6px">
+            Are you sure you want to delete <strong style="color:var(--text)">{{ deleteTarget.name }}</strong>?
+          </p>
+          <p style="font-size:13px;color:#ef4444;margin-bottom:0">
+            This will remove them from all projects and unassign their tasks. Task history is preserved.
+          </p>
+          <div class="modal-footer" style="margin-top:20px">
+            <button class="btn btn-ghost" (click)="deleteTarget = null">Cancel</button>
+            <button class="btn btn-primary" style="background:#ef4444;border-color:#ef4444" (click)="deleteMember()" [disabled]="deleting">
+              {{ deleting ? 'Deleting…' : 'Yes, Delete Member' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
   `
 })
 export class ResourcesComponent implements OnInit {
@@ -142,6 +166,8 @@ export class ResourcesComponent implements OnInit {
   loading = true;
   showModal = false;
   saving = false;
+  deleting = false;
+  deleteTarget: Resource | null = null;
   skillsInput = '';
   form = { name: '', email: '', role: 'developer', agentType: 'worker', maxLoad: 5, hourlyRate: 0 };
 
@@ -154,8 +180,24 @@ export class ResourcesComponent implements OnInit {
     this.saving = true;
     const skills = this.skillsInput.split(',').map(s => s.trim()).filter(Boolean);
     this.api.createResource({ ...this.form, skills } as any).subscribe({
-      next: r => { this.resources.push(r); this.showModal = false; this.saving = false; },
+      next: r => { this.resources.push(r); this.showModal = false; this.saving = false; this.skillsInput = ''; this.form = { name: '', email: '', role: 'developer', agentType: 'worker', maxLoad: 5, hourlyRate: 0 }; },
       error: () => { this.saving = false; }
+    });
+  }
+
+  confirmDelete(r: Resource) { this.deleteTarget = r; }
+
+  deleteMember() {
+    if (!this.deleteTarget) return;
+    this.deleting = true;
+    const id = this.deleteTarget.id;
+    this.api.deleteResource(id).subscribe({
+      next: () => {
+        this.resources = this.resources.filter(r => r.id !== id);
+        this.deleteTarget = null;
+        this.deleting = false;
+      },
+      error: () => { this.deleting = false; }
     });
   }
 

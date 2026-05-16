@@ -81,6 +81,10 @@ export class ApiService {
     return this.http.post<Resource>(`${this.base}/resources`, dto);
   }
 
+  deleteResource(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/resources/${id}`);
+  }
+
   // Requirements
   submitRequirement(projectId: string, rawText: string): Observable<any> {
     return this.http.post(`${this.base}/requirements`, { projectId, rawText });

@@ -123,4 +123,14 @@ public class ResourcesController(AppDbContext db, IConfiguration config) : Contr
 
         return affected > 0 ? NoContent() : NotFound();
     }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        using var conn = new NpgsqlConnection(ConnStr);
+        var affected = await conn.ExecuteAsync(
+            "DELETE FROM resources WHERE id = @Id", new { Id = id });
+
+        return affected > 0 ? NoContent() : NotFound();
+    }
 }
